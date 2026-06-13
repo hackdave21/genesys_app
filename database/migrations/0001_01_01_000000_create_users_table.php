@@ -16,7 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable(); // Set password to nullable for Google sign-in/up
+            $table->string('phone')->nullable();
+            $table->enum('role', ['client', 'admin'])->default('client');
+            $table->string('google_id')->nullable()->unique();
+            $table->text('google_token')->nullable();
+            $table->enum('status', ['active', 'suspended'])->default('active');
             $table->rememberToken();
             $table->timestamps();
         });
