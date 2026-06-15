@@ -46,8 +46,16 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.7; transform: scale(1.15); }
     }
-    @yield('extra-styles')
+    /* Video Modal */
+    #video-modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.92); align-items: center; justify-content: center; padding: 1rem; }
+    #video-modal.open { display: flex; }
+    #video-modal-inner { position: relative; width: 100%; max-width: 900px; background: #0d0d0d; border-radius: 1rem; overflow: hidden; border: 1px solid #2a2a2a; box-shadow: 0 25px 60px rgba(0,0,0,0.8); animation: modalIn 0.25s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    #video-modal video, #video-modal iframe { width: 100%; aspect-ratio: 16/9; display: block; border: none; }
+    #video-modal-close { position: absolute; top: 0.75rem; right: 0.75rem; width: 2.25rem; height: 2.25rem; background: rgba(0,0,0,0.7); border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; z-index: 10; transition: background 0.2s; }
+    #video-modal-close:hover { background: #FF6B2B; border-color: #FF6B2B; }
   </style>
+  @yield('extra-styles')
 
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -284,6 +292,74 @@
 
     lucide.createIcons();
   </script>
+  {{-- GLOBAL VIDEO MODAL --}}
+  <div id="video-modal" role="dialog" aria-modal="true" aria-label="Lecteur vidéo" onclick="if(event.target===this)closeVideoPlayer()">
+    <div id="video-modal-inner">
+      <button id="video-modal-close" onclick="closeVideoPlayer()" aria-label="Fermer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div id="video-modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    function openVideoPlayer(url, title) {
+      const modal = document.getElementById('video-modal');
+      const body  = document.getElementById('video-modal-body');
+      body.innerHTML = '';
+
+      // Check if it's a local file path (starts with /storage/ or relative)
+      const isLocal = url && (url.startsWith('/storage/') || url.startsWith('blob:') || url.match(/\.(mp4|mov|webm|ogg|avi)$/i));
+
+      if (isLocal) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.autoplay = true;
+        video.style.cssText = 'width:100%;aspect-ratio:16/9;display:block;background:#000;';
+        body.appendChild(video);
+      } else {
+        // iframe for YouTube / Vimeo
+        const iframe = document.createElement('iframe');
+        // Convert watch URL to embed if needed
+        let embedUrl = url;
+        if (url.includes('youtube.com/watch')) {
+          const id = new URL(url).searchParams.get('v');
+          if (id) embedUrl = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+        } else if (url.includes('youtu.be/')) {
+          const id = url.split('youtu.be/')[1].split('?')[0];
+          embedUrl = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+        } else if (url.includes('vimeo.com/')) {
+          const id = url.replace(/.*vimeo.com\//, '').split('?')[0];
+          embedUrl = 'https://player.vimeo.com/video/' + id + '?autoplay=1';
+        } else if (url.includes('youtube.com/embed') || url.includes('player.vimeo.com')) {
+          embedUrl = url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+        }
+        iframe.src = embedUrl;
+        iframe.allow = 'autoplay; fullscreen; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.style.cssText = 'width:100%;aspect-ratio:16/9;display:block;border:none;';
+        body.appendChild(iframe);
+      }
+
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeVideoPlayer() {
+      const modal = document.getElementById('video-modal');
+      const body  = document.getElementById('video-modal-body');
+      modal.classList.remove('open');
+      body.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeVideoPlayer();
+    });
+  </script>
+
   @yield('scripts')
 </body>
 </html>

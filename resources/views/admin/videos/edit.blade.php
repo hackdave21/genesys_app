@@ -17,6 +17,21 @@
       Modifier : {{ $video->title }}
     </h2>
 
+    {{-- Current video preview --}}
+    @if($video->video_url)
+      <div class="mb-5 p-4 bg-[#111] border border-[#2a2a2a] rounded-xl">
+        <p class="text-xs text-[#555] font-semibold uppercase tracking-wide mb-3">Vidéo actuelle</p>
+        @if(str_starts_with($video->video_url, '/storage/') || str_starts_with($video->video_url, 'http://') || str_starts_with($video->video_url, 'https://') && str_contains($video->video_url, '/storage/'))
+          <video src="{{ $video->video_url }}" class="w-full max-h-48 rounded-lg object-cover" controls></video>
+        @else
+          <div class="flex items-center gap-3">
+            <i data-lucide="external-link" class="w-4 h-4 text-brand-orange"></i>
+            <a href="{{ $video->video_url }}" target="_blank" class="text-sm text-brand-orange hover:underline truncate">{{ $video->video_url }}</a>
+          </div>
+        @endif
+      </div>
+    @endif
+
     {{-- Current thumbnail preview --}}
     @if($video->thumbnail_url)
       <div class="mb-5">
@@ -55,15 +70,21 @@
         </div>
       </div>
 
-      {{-- Video URL --}}
+      {{-- Replace video --}}
       <div>
-        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">URL YouTube / Vimeo *</label>
-        <div class="relative">
-          <input type="url" name="video_url" value="{{ old('video_url', $video->video_url) }}" required
-            class="w-full bg-[#070707] border {{ $errors->has('video_url') ? 'border-red-500' : 'border-[#2a2a2a]' }} rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder:text-[#333] focus:border-brand-orange outline-none transition-all">
-          <i data-lucide="link" class="w-4 h-4 text-[#444] absolute left-3.5 top-3.5"></i>
+        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">Remplacer la vidéo (optionnel)</label>
+        <div class="border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 text-center hover:border-brand-orange/50 transition-colors cursor-pointer"
+          onclick="document.getElementById('video_file').click()">
+          <i data-lucide="upload" class="w-8 h-8 text-[#444] mx-auto mb-2"></i>
+          <p class="text-xs text-[#555]">Choisir un nouveau fichier vidéo pour remplacer l'actuel</p>
+          <p class="text-[10px] text-[#444] mt-1">MP4, MOV, WebM, AVI — Max 100 Mo</p>
+          <div id="video-preview-container" class="hidden mt-4">
+            <video id="video-preview" class="w-full max-h-40 rounded-lg object-cover mx-auto" controls></video>
+          </div>
+          <p id="video-file-name" class="text-xs text-brand-orange mt-2 hidden font-medium"></p>
         </div>
-        @error('video_url')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+        <input type="file" name="video_file" id="video_file" accept="video/mp4,video/mov,video/ogg,video/webm,video/avi" class="hidden" onchange="handleVideoSelect(this)">
+        @error('video_file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
       </div>
 
       {{-- Description --}}
@@ -77,11 +98,20 @@
       <div>
         <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">Remplacer la miniature (optionnel)</label>
         <div class="border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 text-center hover:border-brand-orange/50 transition-colors cursor-pointer" onclick="document.getElementById('thumbnail').click()">
-          <i data-lucide="upload" class="w-8 h-8 text-[#444] mx-auto mb-2"></i>
+          <i data-lucide="image" class="w-8 h-8 text-[#444] mx-auto mb-2"></i>
           <p class="text-xs text-[#555]">Choisir une nouvelle image pour remplacer l'actuelle</p>
-          <p id="file-name" class="text-xs text-brand-orange mt-2 hidden"></p>
+          <p id="thumb-file-name" class="text-xs text-brand-orange mt-2 hidden"></p>
         </div>
-        <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden" onchange="showFileName(this)">
+        <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden" onchange="showThumbName(this)">
+      </div>
+
+      {{-- Status --}}
+      <div>
+        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">Statut *</label>
+        <select name="status" required class="w-full bg-[#070707] border border-[#2a2a2a] rounded-lg px-4 py-3 text-sm text-white focus:border-brand-orange outline-none transition-all cursor-pointer">
+          <option value="visible" {{ old('status', $video->status) === 'visible' ? 'selected' : '' }}>Visible</option>
+          <option value="archive" {{ old('status', $video->status) === 'archive' ? 'selected' : '' }}>Archivé</option>
+        </select>
       </div>
 
       {{-- Featured --}}
@@ -113,8 +143,24 @@
 
 @section('scripts')
 <script>
-  function showFileName(input) {
-    const label = document.getElementById('file-name');
+  function handleVideoSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const label = document.getElementById('video-file-name');
+      const previewContainer = document.getElementById('video-preview-container');
+      const preview = document.getElementById('video-preview');
+
+      label.textContent = '✓ ' + file.name + ' (' + (file.size / (1024 * 1024)).toFixed(1) + ' Mo)';
+      label.classList.remove('hidden');
+
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      previewContainer.classList.remove('hidden');
+    }
+  }
+
+  function showThumbName(input) {
+    const label = document.getElementById('thumb-file-name');
     if (input.files && input.files[0]) {
       label.textContent = '✓ ' + input.files[0].name;
       label.classList.remove('hidden');

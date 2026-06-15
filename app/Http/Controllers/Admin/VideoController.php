@@ -50,33 +50,26 @@ class VideoController extends Controller
     {
         $data = $request->validated();
         
-        // Parse embed URL from video URL
-        $embedUrl = VideoUrlParser::parse($data['video_url']);
-        if (!$embedUrl) {
-            return back()->withErrors(['video_url' => 'L\'URL de la vidéo doit provenir de YouTube ou Vimeo et être valide.'])->withInput();
+        if ($request->hasFile('video_file')) {
+            $videoPath = $request->file('video_file')->store('videos', 'public');
+            $data['video_url'] = Storage::url($videoPath);
+            $data['embed_url'] = Storage::url($videoPath);
         }
-        $data['embed_url'] = $embedUrl;
 
-        // Auto-detect YouTube thumbnail if none uploaded
+        // Thumbnail upload or default by category
         $thumbnailUrl = null;
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('thumbnails', 'public');
             $thumbnailUrl = Storage::url($path);
         } else {
-            // Suggest default by YouTube ID
-            $youtubePattern = '%(?:youtube\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i';
-            if (preg_match($youtubePattern, $data['video_url'], $match)) {
-                $thumbnailUrl = 'https://img.youtube.com/vi/' . $match[1] . '/maxresdefault.jpg';
-            } else {
-                // Fallback by category
-                $categoryThumbnails = [
-                    'Publicité' => 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop',
-                    'Événement' => 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop',
-                    'Reels'     => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop',
-                    'Corporate' => 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=600&auto=format&fit=crop'
-                ];
-                $thumbnailUrl = $categoryThumbnails[$data['category']];
-            }
+            // Fallback by category
+            $categoryThumbnails = [
+                'Publicité' => 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop',
+                'Événement' => 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop',
+                'Reels'     => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop',
+                'Corporate' => 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=600&auto=format&fit=crop'
+            ];
+            $thumbnailUrl = $categoryThumbnails[$data['category']];
         }
         $data['thumbnail_url'] = $thumbnailUrl;
         $data['is_featured'] = $request->boolean('is_featured', false);
@@ -101,11 +94,15 @@ class VideoController extends Controller
     {
         $data = $request->validated();
 
-        $embedUrl = VideoUrlParser::parse($data['video_url']);
-        if (!$embedUrl) {
-            return back()->withErrors(['video_url' => 'L\'URL de la vidéo doit provenir de YouTube ou Vimeo et être valide.'])->withInput();
+        if ($request->hasFile('video_file')) {
+            // Delete old file if local
+            if ($video->video_url && !str_starts_with($video->video_url, 'http')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $video->video_url));
+            }
+            $videoPath = $request->file('video_file')->store('videos', 'public');
+            $data['video_url'] = Storage::url($videoPath);
+            $data['embed_url'] = Storage::url($videoPath);
         }
-        $data['embed_url'] = $embedUrl;
 
         if ($request->hasFile('thumbnail')) {
             // Delete old file if local
@@ -128,9 +125,14 @@ class VideoController extends Controller
      */
     public function destroy(Video $video)
     {
-        // Delete old local file if any
+        // Delete old local thumbnail if any
         if ($video->thumbnail_url && !str_starts_with($video->thumbnail_url, 'http')) {
             Storage::disk('public')->delete(str_replace('/storage/', '', $video->thumbnail_url));
+        }
+
+        // Delete old local video if any
+        if ($video->video_url && !str_starts_with($video->video_url, 'http')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $video->video_url));
         }
 
         $video->delete();

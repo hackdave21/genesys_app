@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->enum('category', ['Publicité', 'Événement', 'Reels', 'Corporate']);
             $table->text('description')->nullable();
+            $table->string('client')->nullable();
             $table->string('video_url');
             $table->string('embed_url');
             $table->string('thumbnail_url')->nullable();

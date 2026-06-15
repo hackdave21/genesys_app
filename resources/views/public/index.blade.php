@@ -26,13 +26,17 @@
 
       <div class="flex flex-col gap-4">
         <!-- VIDEO PLAYER MOCK -->
-        <div class="bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-2xl overflow-hidden relative group cursor-pointer">
+        <div onclick="openVideoPlayer('{{ $featuredVideos->first()?->video_url ?? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }}', '{{ addslashes($featuredVideos->first()?->title ?? 'Showreel 2026') }}')" class="bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-2xl overflow-hidden relative group cursor-pointer">
           <div class="bg-gradient-to-br from-orange-50 dark:from-[#1a0800] to-white dark:to-[#0d0d0d] h-64 flex items-center justify-center relative">
+            @if($featuredVideos->first()?->thumbnail_url)
+              <img src="{{ $featuredVideos->first()->thumbnail_url }}" alt="Showreel" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500">
+            @endif
+            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
             <button class="w-16 h-16 bg-brand-orange rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-2xl shadow-orange-900/50 relative z-10">
               <i data-lucide="play" class="w-6 h-6 text-gray-900 dark:text-white fill-current ml-1"></i>
             </button>
-            <span class="absolute bottom-4 left-5 text-xs text-gray-500 dark:text-[#555] tracking-widest uppercase">Showreel 2026 — 2 min</span>
-            <span class="absolute top-4 right-4 bg-gray-50 dark:bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur rounded px-2 py-1 text-xs text-gray-600 dark:text-[#888]">2:14</span>
+            <span class="absolute bottom-4 left-5 text-xs text-white tracking-widest uppercase z-10">Showreel 2026 — {{ $featuredVideos->first()?->title ?? 'Découvrir' }}</span>
+            <span class="absolute top-4 right-4 bg-black/50 backdrop-blur rounded px-2 py-1 text-xs text-white z-10">2:14</span>
           </div>
         </div>
 
@@ -71,7 +75,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($featuredVideos as $video)
           <div class="bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-xl overflow-hidden card-hover group">
-            <a href="{{ $video->embed_url }}" target="_blank" class="block relative h-52 overflow-hidden bg-[#111]">
+            <a href="#" onclick="event.preventDefault(); openVideoPlayer('{{ $video->video_url }}', '{{ addslashes($video->title) }}')" class="block relative h-52 overflow-hidden bg-[#111]">
               @if($video->thumbnail_url)
                 <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
               @endif
@@ -254,36 +258,54 @@
       <p class="text-xs text-brand-orange tracking-widest uppercase font-semibold mb-3">Témoignages</p>
       <h2 class="font-jakarta text-4xl font-bold text-gray-900 dark:text-white mb-12">Ce que disent nos clients</h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @forelse($testimonials as $testimonial)
-          <div class="relative group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-brand-orange/20 to-orange-500/20 rounded-2xl blur-md opacity-0 group-hover:opacity-75 transition duration-300"></div>
-            <div class="relative bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-2xl p-6 h-full flex flex-col card-hover shadow-lg">
-              <div class="flex items-center justify-between mb-5">
-                <i data-lucide="quote" class="w-6 h-6 text-brand-orange/40"></i>
-                <div class="flex gap-0.5">
-                  @for($i=1; $i<=5; $i++)
-                    <i data-lucide="star" class="w-3.5 h-3.5 {{ $i <= $testimonial->rating ? 'text-brand-gold fill-current' : 'text-gray-300 dark:text-[#333]' }}"></i>
-                  @endfor
+      {{-- Testimonials Carousel --}}
+      <div class="relative px-4 sm:px-12 group/carousel">
+        {{-- Viewport --}}
+        <div class="overflow-hidden">
+          <div id="testimonial-carousel-track" class="flex transition-transform duration-500 ease-out" style="transform: translateX(0px);">
+            @forelse($testimonials as $testimonial)
+              <div class="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-3">
+                <div class="relative group h-full">
+                  <div class="absolute -inset-0.5 bg-gradient-to-r from-brand-orange/20 to-orange-500/20 rounded-2xl blur-md opacity-0 group-hover:opacity-75 transition duration-300"></div>
+                  <div class="relative bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-2xl p-6 h-full flex flex-col card-hover shadow-lg">
+                    <div class="flex items-center justify-between mb-5">
+                      <i data-lucide="quote" class="w-6 h-6 text-brand-orange/40"></i>
+                      <div class="flex gap-0.5">
+                        @for($i=1; $i<=5; $i++)
+                          <i data-lucide="star" class="w-3.5 h-3.5 {{ $i <= $testimonial->rating ? 'text-brand-gold fill-current' : 'text-gray-300 dark:text-[#333]' }}"></i>
+                        @endfor
+                      </div>
+                    </div>
+                    <p class="font-jakarta text-sm md:text-[14px] text-gray-600 dark:text-[#b3b3b3] leading-relaxed mb-6 italic flex-1">
+                      « {{ $testimonial->content }} »
+                    </p>
+                    <div class="flex items-center gap-3 border-t border-gray-200/50 dark:border-[#1f1f1f]/80 pt-4">
+                      <div class="w-10 h-10 bg-orange-50 dark:bg-[#1a0800] border border-brand-orange/20 rounded-full flex items-center justify-center text-sm font-extrabold text-brand-orange flex-shrink-0">
+                        {{ strtoupper(substr($testimonial->client_name, 0, 2)) }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="font-jakarta text-sm font-bold text-gray-900 dark:text-white truncate">{{ $testimonial->client_name }}</p>
+                        <p class="font-jakarta text-xs text-gray-500 dark:text-[#666] truncate">{{ $testimonial->company_role }}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p class="font-jakarta text-sm md:text-[14px] text-gray-600 dark:text-[#b3b3b3] leading-relaxed mb-6 italic flex-1">
-                « {{ $testimonial->content }} »
-              </p>
-              <div class="flex items-center gap-3 border-t border-gray-200/50 dark:border-[#1f1f1f]/80 pt-4">
-                <div class="w-10 h-10 bg-orange-50 dark:bg-[#1a0800] border border-brand-orange/20 rounded-full flex items-center justify-center text-sm font-extrabold text-brand-orange flex-shrink-0">
-                  {{ strtoupper(substr($testimonial->client_name, 0, 2)) }}
-                </div>
-                <div>
-                  <p class="font-jakarta text-sm font-bold text-gray-900 dark:text-white truncate max-w-[150px]">{{ $testimonial->client_name }}</p>
-                  <p class="font-jakarta text-xs text-gray-500 dark:text-[#666] truncate max-w-[180px]">{{ $testimonial->company_role }}</p>
-                </div>
-              </div>
-            </div>
+            @empty
+              <p class="w-full text-center text-gray-500 py-10">Aucun témoignage pour le moment.</p>
+            @endforelse
           </div>
-        @empty
-          <p class="col-span-3 text-center text-gray-500 py-10">Aucun témoignage pour le moment.</p>
-        @endforelse
+        </div>
+
+        {{-- Arrows --}}
+        @if($testimonials->count() > 0)
+          <button onclick="prevTestimonial()" class="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gray-900/80 border border-gray-800 text-white flex items-center justify-center hover:bg-brand-orange hover:border-brand-orange transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 shadow-lg" aria-label="Précédent">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <button onclick="nextTestimonial()" class="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gray-900/80 border border-gray-800 text-white flex items-center justify-center hover:bg-brand-orange hover:border-brand-orange transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 shadow-lg" aria-label="Suivant">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        @endif
       </div>
     </div>
   </section>
@@ -306,4 +328,69 @@
     </div>
   </section>
 
+@endsection
+
+@section('scripts')
+<script>
+  let currentTestimonialIndex = 0;
+
+  function getTestimonialsPerView() {
+    if (window.innerWidth >= 1024) return 3; // lg
+    if (window.innerWidth >= 768) return 2;  // md
+    return 1; // sm / xs
+  }
+
+  function updateTestimonialCarousel() {
+    const track = document.getElementById('testimonial-carousel-track');
+    if (!track) return;
+    const items = track.children;
+    const totalItems = items.length;
+    if (totalItems === 0) return;
+
+    const perView = getTestimonialsPerView();
+    const maxIndex = Math.max(0, totalItems - perView);
+
+    if (currentTestimonialIndex > maxIndex) {
+      currentTestimonialIndex = maxIndex;
+    }
+
+    const itemWidth = items[0].getBoundingClientRect().width;
+    track.style.transform = `translateX(-${currentTestimonialIndex * itemWidth}px)`;
+  }
+
+  function nextTestimonial() {
+    const track = document.getElementById('testimonial-carousel-track');
+    if (!track) return;
+    const totalItems = track.children.length;
+    const perView = getTestimonialsPerView();
+    const maxIndex = Math.max(0, totalItems - perView);
+
+    if (currentTestimonialIndex < maxIndex) {
+      currentTestimonialIndex++;
+    } else {
+      currentTestimonialIndex = 0; // Loop back
+    }
+    updateTestimonialCarousel();
+  }
+
+  function prevTestimonial() {
+    const track = document.getElementById('testimonial-carousel-track');
+    if (!track) return;
+    const totalItems = track.children.length;
+    const perView = getTestimonialsPerView();
+    const maxIndex = Math.max(0, totalItems - perView);
+
+    if (currentTestimonialIndex > 0) {
+      currentTestimonialIndex--;
+    } else {
+      currentTestimonialIndex = maxIndex; // Loop to end
+    }
+    updateTestimonialCarousel();
+  }
+
+  window.addEventListener('resize', updateTestimonialCarousel);
+  document.addEventListener('DOMContentLoaded', () => {
+    updateTestimonialCarousel();
+  });
+</script>
 @endsection

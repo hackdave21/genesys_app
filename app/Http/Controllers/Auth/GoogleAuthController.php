@@ -16,7 +16,12 @@ class GoogleAuthController extends Controller
     public function redirectToGoogle()
     {
         try {
-            return Socialite::driver('google')->redirect();
+            $driver = Socialite::driver('google');
+            if (config('app.env') === 'local') {
+                $driver->redirectUrl(route('auth.google.callback'));
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            }
+            return $driver->redirect();
         } catch (Exception $e) {
             return redirect()->route('login')->withErrors(['email' => 'La connexion via Google est actuellement indisponible : ' . $e->getMessage()]);
         }
@@ -28,7 +33,12 @@ class GoogleAuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $driver = Socialite::driver('google');
+            if (config('app.env') === 'local') {
+                $driver->redirectUrl(route('auth.google.callback'));
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            }
+            $googleUser = $driver->user();
             
             // Find or create the user
             $user = User::where('google_id', $googleUser->id)

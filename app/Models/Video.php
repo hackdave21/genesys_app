@@ -13,6 +13,7 @@ class Video extends Model
         'title',
         'category',
         'description',
+        'client',
         'video_url',
         'embed_url',
         'thumbnail_url',

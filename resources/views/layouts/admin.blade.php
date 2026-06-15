@@ -32,8 +32,8 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .nav-active { background-color: #141414; color: #fff !important; }
     .nav-active i { color: #FF6B2B; }
-    @yield('extra-styles')
   </style>
+  @yield('extra-styles')
 </head>
 <body class="bg-[#070707] text-white font-jakarta antialiased h-screen flex overflow-hidden">
 

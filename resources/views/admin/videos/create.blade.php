@@ -13,7 +13,7 @@
 
   <div class="bg-[#0d0d0d] border border-[#1f1f1f] rounded-2xl p-6 md:p-8">
     <h2 class="font-jakarta text-lg font-bold mb-6 flex items-center gap-2">
-      <i data-lucide="video-off" class="w-5 h-5 text-brand-orange"></i>
+      <i data-lucide="video" class="w-5 h-5 text-brand-orange"></i>
       Ajouter une vidéo au portfolio
     </h2>
 
@@ -52,17 +52,25 @@
         </div>
       </div>
 
-      {{-- Video URL --}}
+      {{-- Video File Upload --}}
       <div>
-        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">URL YouTube / Vimeo *</label>
-        <div class="relative">
-          <input type="url" name="video_url" value="{{ old('video_url') }}" required
-            placeholder="https://www.youtube.com/watch?v=..."
-            class="w-full bg-[#070707] border {{ $errors->has('video_url') ? 'border-red-500' : 'border-[#2a2a2a]' }} rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder:text-[#333] focus:border-brand-orange outline-none transition-all">
-          <i data-lucide="link" class="w-4 h-4 text-[#444] absolute left-3.5 top-3.5"></i>
+        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">Fichier Vidéo *</label>
+        <div id="video-drop-zone"
+          class="border-2 border-dashed {{ $errors->has('video_file') ? 'border-red-500' : 'border-[#2a2a2a]' }} rounded-xl p-8 text-center hover:border-brand-orange/60 transition-colors cursor-pointer"
+          onclick="document.getElementById('video_file').click()"
+          ondragover="event.preventDefault(); this.classList.add('border-brand-orange/60');"
+          ondragleave="this.classList.remove('border-brand-orange/60');"
+          ondrop="handleVideoDrop(event)">
+          <i data-lucide="film" class="w-10 h-10 text-[#444] mx-auto mb-3"></i>
+          <p class="text-sm text-[#555] mb-1">Cliquer ou glisser-déposer une vidéo ici</p>
+          <p class="text-xs text-[#444]">MP4, MOV, WebM, AVI — Max 100 Mo</p>
+          <div id="video-preview-container" class="hidden mt-4">
+            <video id="video-preview" class="w-full max-h-48 rounded-lg object-cover mx-auto" controls></video>
+          </div>
+          <p id="video-file-name" class="text-xs text-brand-orange mt-3 hidden font-medium"></p>
         </div>
-        <p class="text-[10px] text-[#555] mt-1">Accepte les URLs YouTube et Vimeo. La miniature YouTube sera auto-générée.</p>
-        @error('video_url')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+        <input type="file" name="video_file" id="video_file" accept="video/mp4,video/mov,video/ogg,video/webm,video/avi" class="hidden" onchange="handleVideoSelect(this)">
+        @error('video_file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
       </div>
 
       {{-- Description --}}
@@ -79,10 +87,19 @@
         <div class="border-2 border-dashed border-[#2a2a2a] rounded-xl p-6 text-center hover:border-brand-orange/50 transition-colors cursor-pointer" onclick="document.getElementById('thumbnail').click()">
           <i data-lucide="image-plus" class="w-8 h-8 text-[#444] mx-auto mb-2"></i>
           <p class="text-xs text-[#555]">Cliquer pour sélectionner une image (JPG, PNG, WebP)</p>
-          <p id="file-name" class="text-xs text-brand-orange mt-2 hidden"></p>
+          <p id="thumb-file-name" class="text-xs text-brand-orange mt-2 hidden"></p>
         </div>
-        <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden" onchange="showFileName(this)">
+        <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden" onchange="showThumbName(this)">
         @error('thumbnail')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+      </div>
+
+      {{-- Status --}}
+      <div>
+        <label class="block text-xs text-[#555] font-semibold mb-2 uppercase tracking-wide">Statut *</label>
+        <select name="status" required class="w-full bg-[#070707] border border-[#2a2a2a] rounded-lg px-4 py-3 text-sm text-white focus:border-brand-orange outline-none transition-all cursor-pointer">
+          <option value="visible" {{ old('status', 'visible') === 'visible' ? 'selected' : '' }}>Visible</option>
+          <option value="archive" {{ old('status') === 'archive' ? 'selected' : '' }}>Archivé</option>
+        </select>
       </div>
 
       {{-- Featured --}}
@@ -114,8 +131,34 @@
 
 @section('scripts')
 <script>
-  function showFileName(input) {
-    const label = document.getElementById('file-name');
+  function handleVideoSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const label = document.getElementById('video-file-name');
+      const previewContainer = document.getElementById('video-preview-container');
+      const preview = document.getElementById('video-preview');
+
+      label.textContent = '✓ ' + file.name + ' (' + (file.size / (1024 * 1024)).toFixed(1) + ' Mo)';
+      label.classList.remove('hidden');
+
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      previewContainer.classList.remove('hidden');
+    }
+  }
+
+  function handleVideoDrop(event) {
+    event.preventDefault();
+    document.getElementById('video-drop-zone').classList.remove('border-brand-orange/60');
+    const dt = event.dataTransfer;
+    if (dt.files && dt.files[0]) {
+      document.getElementById('video_file').files = dt.files;
+      handleVideoSelect(document.getElementById('video_file'));
+    }
+  }
+
+  function showThumbName(input) {
+    const label = document.getElementById('thumb-file-name');
     if (input.files && input.files[0]) {
       label.textContent = '✓ ' + input.files[0].name;
       label.classList.remove('hidden');

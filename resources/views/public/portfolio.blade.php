@@ -70,7 +70,7 @@
       @if($featured && !$category)
       <div class="bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-2xl overflow-hidden mb-12 group hover:border-brand-orange/40 transition-colors">
         <div class="grid grid-cols-1 lg:grid-cols-2">
-          <a href="{{ $featured->embed_url }}" target="_blank" class="block bg-gradient-to-br from-orange-50 dark:from-[#1a0800] to-white dark:to-[#0d0d0d] h-72 flex items-center justify-center relative overflow-hidden">
+          <a href="#" onclick="event.preventDefault(); openVideoPlayer('{{ $featured->video_url }}', '{{ addslashes($featured->title) }}')" class="block bg-gradient-to-br from-orange-50 dark:from-[#1a0800] to-white dark:to-[#0d0d0d] h-72 flex items-center justify-center relative overflow-hidden">
             @if($featured->thumbnail_url)
               <img src="{{ $featured->thumbnail_url }}" alt="{{ $featured->title }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700">
             @endif
@@ -114,7 +114,7 @@
             };
           @endphp
           <div class="portfolio-item bg-gray-50 dark:bg-[#0d0d0d] border border-gray-200 dark:border-[#1f1f1f] rounded-xl overflow-hidden card-hover group">
-            <a href="{{ $video->embed_url }}" target="_blank" class="block h-48 bg-[#111] flex items-center justify-center relative overflow-hidden">
+            <a href="#" onclick="event.preventDefault(); openVideoPlayer('{{ $video->video_url }}', '{{ addslashes($video->title) }}')" class="block h-48 bg-[#111] flex items-center justify-center relative overflow-hidden">
               @if($video->thumbnail_url)
                 <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500">
               @endif
