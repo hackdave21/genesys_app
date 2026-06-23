@@ -10,18 +10,30 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
+    private function googleDriver()
+    {
+        $driver = Socialite::driver('google');
+
+        $redirect = config('services.google.redirect');
+        if (! str_starts_with($redirect, 'http')) {
+            $redirect = url($redirect);
+        }
+        $driver->redirectUrl($redirect);
+
+        if (config('app.env') === 'local') {
+            $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+        }
+
+        return $driver;
+    }
+
     /**
      * Redirect the user to the Google authentication page.
      */
     public function redirectToGoogle()
     {
         try {
-            $driver = Socialite::driver('google');
-            if (config('app.env') === 'local') {
-                $driver->redirectUrl(route('auth.google.callback'));
-                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
-            }
-            return $driver->redirect();
+            return $this->googleDriver()->redirect();
         } catch (Exception $e) {
             return redirect()->route('login')->withErrors(['email' => 'La connexion via Google est actuellement indisponible : ' . $e->getMessage()]);
         }
@@ -33,12 +45,7 @@ class GoogleAuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            $driver = Socialite::driver('google');
-            if (config('app.env') === 'local') {
-                $driver->redirectUrl(route('auth.google.callback'));
-                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
-            }
-            $googleUser = $driver->user();
+            $googleUser = $this->googleDriver()->user();
             
             // Find or create the user
             $user = User::where('google_id', $googleUser->id)
