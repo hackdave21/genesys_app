@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Inspira\CinetPayController;
+use App\Http\Controllers\Inspira\InspiraController;
+use App\Http\Controllers\Inspira\InspiraDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,4 +74,49 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Vidéos Portfolio CRUD
     Route::resource('videos', VideoController::class)->except(['show']);
+
+    // Inspira — Admin management
+    Route::prefix('inspira')->name('inspira.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\Inspira\DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/plans', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'index'])->name('plans.index');
+        Route::get('/plans/create', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'create'])->name('plans.create');
+        Route::post('/plans', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'store'])->name('plans.store');
+        Route::get('/plans/{plan}/edit', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'edit'])->name('plans.edit');
+        Route::put('/plans/{plan}', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'update'])->name('plans.update');
+        Route::post('/plans/{plan}/toggle-status', [\App\Http\Controllers\Admin\Inspira\PlanController::class, 'toggleStatus'])->name('plans.toggle-status');
+
+        Route::get('/subscribers', [\App\Http\Controllers\Admin\Inspira\SubscriberController::class, 'index'])->name('subscribers.index');
+        Route::get('/subscribers/{subscription}', [\App\Http\Controllers\Admin\Inspira\SubscriberController::class, 'show'])->name('subscribers.show');
+        Route::post('/subscribers/{subscription}/status', [\App\Http\Controllers\Admin\Inspira\SubscriberController::class, 'updateStatus'])->name('subscribers.update-status');
+
+        Route::get('/payments', [\App\Http\Controllers\Admin\Inspira\PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\Inspira\PaymentController::class, 'show'])->name('payments.show');
+
+        Route::get('/ideas', [\App\Http\Controllers\Admin\Inspira\IdeaController::class, 'index'])->name('ideas.index');
+
+        Route::get('/config', [\App\Http\Controllers\Admin\Inspira\ConfigController::class, 'index'])->name('config');
+        Route::post('/config', [\App\Http\Controllers\Admin\Inspira\ConfigController::class, 'update'])->name('config.update');
+    });
+});
+
+// CinetPay webhook (CSRF exempt, public)
+Route::post('/cinetpay/notify', [CinetPayController::class, 'notify'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::get('/cinetpay/return', [CinetPayController::class, 'return'])->name('cinetpay.return');
+
+// Inspira — Public pages
+Route::prefix('inspira')->name('inspira.')->group(function () {
+    Route::get('/', [InspiraController::class, 'index'])->name('index');
+    Route::get('/tarifs', [InspiraController::class, 'tarifs'])->name('tarifs');
+    Route::post('/subscribe/{subscription_plan}', [InspiraController::class, 'subscribe'])->name('subscribe');
+
+    // Inspira — Authenticated pages
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', [InspiraDashboardController::class, 'index'])->name('dashboard')
+            ->middleware('subscription');
+        Route::get('/dashboard/profil', [InspiraDashboardController::class, 'editProfil'])->name('profile')
+            ->middleware('subscription');
+        Route::put('/dashboard/profil', [InspiraDashboardController::class, 'updateProfil'])->name('profile.update')
+            ->middleware('subscription');
+    });
 });

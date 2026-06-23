@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             VideoSeeder::class,
             QuoteSeeder::class,
             ProjectSeeder::class,
+            SubscriptionPlanSeeder::class,
         ]);
     }
 }

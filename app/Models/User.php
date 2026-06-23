@@ -84,4 +84,48 @@ class User extends Authenticatable
     {
         return $this->status === 'active';
     }
+
+    // ──────────────────────────────────────────────
+    // Inspira / SaaS relationships
+    // ──────────────────────────────────────────────
+
+    public function contentProfile()
+    {
+        return $this->hasOne(ContentProfile::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function contentIdeas()
+    {
+        return $this->hasMany(ContentIdea::class);
+    }
+
+    /**
+     * Retourne l'abonnement actif courant (status = active et expires_at > maintenant).
+     */
+    public function activeSubscription(): ?Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->latest('expires_at')
+            ->first();
+    }
+
+    /**
+     * Vérifie si l'utilisateur possède un abonnement actif.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription() !== null;
+    }
 }

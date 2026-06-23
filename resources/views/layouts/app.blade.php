@@ -75,6 +75,7 @@
         <a href="{{ route('public.portfolio') }}" class="{{ request()->routeIs('public.portfolio') ? 'text-brand-orange dark:text-brand-orange text-sm font-bold' : 'text-gray-600 dark:text-[#888] text-sm font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Portfolio</a>
         <a href="{{ route('public.services') }}" class="{{ request()->routeIs('public.services') ? 'text-brand-orange dark:text-brand-orange text-sm font-bold' : 'text-gray-600 dark:text-[#888] text-sm font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Services</a>
         <a href="{{ route('public.about') }}" class="{{ request()->routeIs('public.about') ? 'text-brand-orange dark:text-brand-orange text-sm font-bold' : 'text-gray-600 dark:text-[#888] text-sm font-medium hover:text-gray-900 dark:text-white transition-colors' }}">À propos</a>
+        <a href="{{ route('inspira.index') }}" class="{{ request()->routeIs('inspira.*') ? 'text-brand-orange dark:text-brand-orange text-sm font-bold' : 'text-gray-600 dark:text-[#888] text-sm font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Inspira</a>
 
         @auth
           @if(auth()->user()->isAdmin())
@@ -115,6 +116,7 @@
         <a href="{{ route('public.portfolio') }}" class="{{ request()->routeIs('public.portfolio') ? 'text-brand-orange dark:text-brand-orange text-base font-bold' : 'text-gray-600 dark:text-[#888] text-base font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Portfolio</a>
         <a href="{{ route('public.services') }}" class="{{ request()->routeIs('public.services') ? 'text-brand-orange dark:text-brand-orange text-base font-bold' : 'text-gray-600 dark:text-[#888] text-base font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Services</a>
         <a href="{{ route('public.about') }}" class="{{ request()->routeIs('public.about') ? 'text-brand-orange dark:text-brand-orange text-base font-bold' : 'text-gray-600 dark:text-[#888] text-base font-medium hover:text-gray-900 dark:text-white transition-colors' }}">À propos</a>
+        <a href="{{ route('inspira.index') }}" class="{{ request()->routeIs('inspira.*') ? 'text-brand-orange dark:text-brand-orange text-base font-bold' : 'text-gray-600 dark:text-[#888] text-base font-medium hover:text-gray-900 dark:text-white transition-colors' }}">Inspira</a>
 
         @auth
           @if(auth()->user()->isAdmin())

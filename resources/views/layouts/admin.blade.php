@@ -108,6 +108,37 @@
         </div>
       </div>
 
+      <p class="text-[9px] text-[#333] uppercase tracking-widest font-bold px-3 py-2 mt-3">Inspira</p>
+
+      <a href="{{ route('admin.inspira.dashboard') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors" data-route="admin.inspira.dashboard">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Stats Inspira
+      </a>
+
+      {{-- Plans submenu --}}
+      <div>
+        <button onclick="toggleSubmenu('submenu-inspira-plans')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors">
+          <span class="flex items-center gap-3"><i data-lucide="credit-card" class="w-4 h-4"></i> Plans</span>
+          <i data-lucide="chevron-down" id="arrow-inspira-plans" class="w-3.5 h-3.5 transition-transform duration-200"></i>
+        </button>
+        <div id="submenu-inspira-plans" class="hidden flex-col gap-1 pl-9 mt-1">
+          <a href="{{ route('admin.inspira.plans.create') }}" class="flex items-center gap-2 py-1.5 text-xs text-[#888] hover:text-white transition-colors">Ajouter un plan</a>
+          <a href="{{ route('admin.inspira.plans.index') }}" class="flex items-center gap-2 py-1.5 text-xs text-[#888] hover:text-white transition-colors">Liste des plans</a>
+        </div>
+      </div>
+
+      <a href="{{ route('admin.inspira.subscribers.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors" data-route="admin.inspira.subscribers.index">
+        <i data-lucide="users" class="w-4 h-4"></i> Abonnés
+      </a>
+      <a href="{{ route('admin.inspira.payments.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors" data-route="admin.inspira.payments.index">
+        <i data-lucide="wallet" class="w-4 h-4"></i> Paiements
+      </a>
+      <a href="{{ route('admin.inspira.ideas.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors" data-route="admin.inspira.ideas.index">
+        <i data-lucide="lightbulb" class="w-4 h-4"></i> Idées générées
+      </a>
+      <a href="{{ route('admin.inspira.config') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors" data-route="admin.inspira.config">
+        <i data-lucide="settings" class="w-4 h-4"></i> Configuration
+      </a>
+
       <div class="mt-auto pt-4 border-t border-[#1a1a1a]">
         <a href="{{ route('public.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:bg-[#141414] hover:text-white font-medium transition-colors">
           <i data-lucide="external-link" class="w-4 h-4"></i> Voir le site
